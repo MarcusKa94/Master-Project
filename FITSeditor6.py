@@ -35,6 +35,13 @@ Image_Data_All2 = Image_Data_All[300:400]
 
 Image_Pixel_Data = np.nan_to_num(Image_Data_All2)
 
+Image_Pixel_Data_HR = np.repeat(Image_Pixel_Data, 10, axis=0)
+
+plt.plot(Image_Pixel_Data_HR[:,0])
+plt.show()   
+
+
+
 #Create the Lorentz and Moffat fits and create Fit_Data which contains the parameters for the models
 x = np.linspace(-50,50,100)
 
@@ -246,6 +253,179 @@ for n in range(1024):
 plt.pcolormesh(FitMoffat_2, cmap='RdBu')
 plt.colorbar()
 plt.show()
+
+
+
+#Create a function which shift columns to the left
+
+def shift_left(lst, n):
+    if type(n) == int:
+      def shift(ntimes):
+          if ntimes == 0:
+              return
+          else:
+              temp = lst[0]
+              for index in range(len(lst) - 1):
+                  lst[index] = lst[index + 1]         
+              lst[index + 1] = temp
+              return shift(ntimes-1)
+      return shift(n)
+    else:
+      print("n must be an integer.")
+
+#shift_left(Image_Pixel_Data_Aligned[0,:], 5)
+
+
+#Create a High-Resolution Image with the Pixel Data
+      
+Image_Pixel_Data_HR = np.repeat(Image_Pixel_Data, 10, axis=0)
+
+
+#Aligned the pixel data to the centre of the image
+#Uses Numpy.interp
+
+Image_Pixel_Data_Aligned = []
+
+for n in range(0, 1024):
+    Image_Pixel_Data_Aligned.append(np.interp(HR_Vector, HR_Vector - Mean_Data_Fit[n], Image_Pixel_Data_HR[:,n]))
+
+Image_Pixel_Data_Aligned_2 = np.transpose(np.asarray(Image_Pixel_Data_Aligned))
+
+#plt.pcolormesh(Image_Pixel_Data_HR[400:600,:])
+#plt.colorbar()
+#plt.show()
+
+plt.pcolormesh(Image_Pixel_Data_Aligned_2[400:600,:])
+plt.colorbar()
+plt.show()
+
+
+#Calculate the Area under the curve of each column
+#in the image and then normalize the area to 1
+
+Pixel_Column_Area = []
+
+for n in range(0, 1024):
+    Pixel_Column_Area.append(np.trapz(y = Image_Pixel_Data_HR[:,n]))
+
+Pixel_Column_Area_2 = np.asarray(Pixel_Column_Area)
+
+Image_Data_Normalized = []
+
+for n in range(0, 1024):
+    Image_Data_Normalized.append(Image_Pixel_Data_HR[:,n]/Pixel_Column_Area_2[n])
+
+Image_Data_Normalized_2 = np.transpose(np.asarray(Image_Data_Normalized))
+
+plt.pcolormesh(Image_Data_Normalized_2[400:600,:])
+plt.colorbar()
+plt.show()
+
+#Test that the new area is 1 under each column of data
+
+Pixel_Area_Test = []
+
+for n in range(0, 1024):
+    Pixel_Area_Test.append(np.trapz(y = Image_Data_Normalized_2[:,n]))
+
+Pixel_Area_Test_2 = np.asarray(Pixel_Area_Test)
+
+
+#Perform the normalization of the aligned data
+
+Pixel_Column_Area_3 = []
+
+for n in range(0, 1024):
+    Pixel_Column_Area_3.append(np.trapz(y = Image_Pixel_Data_Aligned_2[:,n]))
+
+Pixel_Column_Area_4 = np.asarray(Pixel_Column_Area_3)
+
+Image_Data_Aligned_Normalized = []
+
+for n in range(0, 1024):
+    Image_Data_Aligned_Normalized.append(Image_Pixel_Data_Aligned_2[:,n]/Pixel_Column_Area_4[n])
+
+Image_Data_Aligned_Normalized_2 = np.transpose(np.asarray(Image_Data_Aligned_Normalized))
+
+plt.pcolormesh(Image_Data_Aligned_Normalized_2[400:600,:])
+plt.colorbar()
+plt.show()
+
+#Row 505 at Column 23, 276, 511, 731, 939
+# Periodicity is 253, 235, 220, 208
+
+
+
+
+
+Image_Aligned = []
+
+for n in range(0, 1024):
+    Image_Aligned.append(np.interp(x, x - Mean_Data_Fit[n] + 0.5, Image_Pixel_Data[:,n]))
+
+Image_Aligned_2 = np.transpose(np.asarray(Image_Aligned))
+
+plt.pcolormesh(Image_Pixel_Data[40:60,:])
+plt.colorbar()
+plt.show()
+
+plt.pcolormesh(Image_Aligned_2[40:60,:])
+plt.colorbar()
+plt.show()
+
+
+
+
+Image_Pixel_Data_Aligned_3 = Image_Pixel_Data_Aligned_2[::10,:]
+
+Image_Alignment_Residual = Image_Pixel_Data_Aligned_3 - Image_Aligned_2
+
+plt.pcolormesh(Image_Pixel_Data_Aligned_3[40:60,:])
+plt.colorbar()
+plt.show()
+
+plt.pcolormesh(Image_Pixel_Data_Aligned_3[40:60,:] - Image_Aligned_2[40:60,:])
+plt.colorbar()
+plt.show()
+
+
+Image_Column_Average = []
+for n in range(1024):
+    Image_Column_Average.append(np.mean(Image_Pixel_Data[:,n]))
+
+Image_Column_Average_2 = np.asarray(Image_Column_Average)
+
+
+plt.plot(Image_Column_Average_2)
+plt.show()
+
+
+Image_Multiplying_Factor = Image_Pixel_Data_HR/Image_Data_Normalized_2
+#for n in range(1024):
+#    Image_Multiplying_Factor.append(Image_Pixel_Data_HR[:,n]/Image_Data_Normalized_2[:,n])
+
+
+Image_1 = []
+for n in range(1000):
+    Image_1.append(np.mean(Image_Data_Aligned_Normalized_2[n,:]))
+
+plt.plot(HR_Vector, Image_1)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #Alpha_Data_Clipped = sigma_clip(Alpha_Data_4, sigma = 5)
